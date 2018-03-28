@@ -6,7 +6,7 @@ This is a QGIS plugin which is used to convert the selected QGIS Print Composer 
 * An Astun Services account
 
 ## Installation ##
-Copy the required files to the QGIS Python plugin directory
+Copy the required files to a directory within the QGIS Python plugin directory
 (`C:\Users\{username}\.qgis2\python\plugins\` on Windows).
 
 ## Set up ##
