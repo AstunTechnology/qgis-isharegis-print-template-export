@@ -173,9 +173,11 @@ class IShareGISPrintTemplateExport:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-        self.dlg.txtSaveDirectory.clear()
+
+        # attach the click event to the browse button
         self.dlg.btnSaveDirectoryBrowse.clicked.connect(self.select_save_directory)
 
+        # set the inital values from the settings object
         s = QSettings()
         self.dlg.txtAstunServicesURL.setText(s.value('iShareGISPrintTemplateExporter/AstunServicesUrl'))
         self.dlg.txtSaveDirectory.setText(s.value('iShareGISPrintTemplateExporter/SaveDirectory'))
@@ -192,22 +194,10 @@ class IShareGISPrintTemplateExport:
         # remove the toolbar
         del self.toolbar
 
-    def getNewCompo(self, w, cView):
-        """Function that finds new composer to be added to the list."""
-        w.addItem(cView.composerWindow().windowTitle())
-        #nameCompo = cView.composerWindow().windowTitle()
-        #if not w.findItems(nameCompo, Qt.MatchExactly):
-        #item = QComboWidgetItem()
-        #item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-        #item.setCheckState(Qt.Unchecked)
-        #item.setText(nameCompo)
-        #w.addItem(item)
-
     def populateComposerList(self, w):
         w.clear()
         for cView in self.iface.activeComposers():
-            self.getNewCompo(w, cView)
-        #w.sortItems()
+            w.addItem(cView.composerWindow().windowTitle())
 
     def get_templates(self, w):
         if len(self.iface.activeComposers()) == 0:
@@ -218,12 +208,12 @@ class IShareGISPrintTemplateExport:
             self.populateComposerList(w)
 
     def send_request(self, url, template, directory, payload):
-        QgsMessageLog.logMessage("URL:" + url, "iShareGIS Template Export")
-        QgsMessageLog.logMessage("Template:" + template, "iShareGIS Template Export")
-        QgsMessageLog.logMessage("Directory:" + directory, "iShareGIS Template Export")
+        """Sends the request to the server"""
+        self.add_log_entry("URL: '{0}'".format(url))
+        self.add_log_entry("Template: '{0}'".format(template))
+        self.add_log_entry("Directory: '{0}'".format(directory))
 
         def request_finished(reply):
-            QgsMessageLog.logMessage("Reply called", "iShareGIS Template Export")
             networkAccessManager = QgsNetworkAccessManager.instance()
             networkAccessManager.finished.disconnect(request_finished)
             sc = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
@@ -236,10 +226,10 @@ class IShareGISPrintTemplateExport:
                         f.write(bas)
                     self.show_message("Template successfully converted")
                 except IOError as e:
-                    QgsMessageLog.logMessage("Error saving template\r\n{0}".format(e), tag="iShareGIS Template Export", level=QgsMessageLog.CRITICAL)
+                    self.add_log_entry("Error saving template\r\n{0}".format(e), level=QgsMessageLog.CRITICAL)
                     self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL)
             else:
-                QgsMessageLog.logMessage("An error occurred while converting the template: {0}".format(sc), tag="iShareGIS Template Export", level=QgsMessageLog.CRITICAL)
+                self.add_log_entry("An error occurred while converting the template: {0}".format(sc), level=QgsMessageLog.CRITICAL)
                 self.show_message('An error occurred while converting the template', level=QgsMessageBar.CRITICAL)
             reply.deleteLater()
 
@@ -254,15 +244,17 @@ class IShareGISPrintTemplateExport:
         req.setHeader(QNetworkRequest.ContentTypeHeader, 'application/xml')
         req.setRawHeader(QByteArray('x-template-name'), QByteArray(template))
         req.setRawHeader("Authorization", headerData)
-        #req.setRawHeader(QByteArray('Authorization'), QByteArray('Basic {0}'.format(authorization)))
         networkAccessManager = QgsNetworkAccessManager.instance()
         networkAccessManager.finished.connect(request_finished)
         data = QByteArray(payload)
-
         reply = networkAccessManager.post(req, data)
 
     # Open Folder Dialog
     # https://stackoverflow.com/questions/3941917/can-the-open-file-dialog-be-used-to-select-a-folder
+
+    def add_log_entry(self, message, level=QgsMessageLog.INFO):
+        """Adds a log entry to the QGIS log"""
+        QgsMessageLog.logMessage(message, "iShareGIS Template Export", level=level)
 
     def show_message(self, message, level=QgsMessageBar.INFO):
         self.iface.messageBar().pushMessage(
@@ -274,32 +266,35 @@ class IShareGISPrintTemplateExport:
 
     # https://stackoverflow.com/questions/295135/turn-a-string-into-a-valid-filename
     def create_filename(self, value):
+        """Creates a safe filename"""
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
         value = unicode(re.sub('[^\w\s-]', '', value).strip().lower())
         value = unicode(re.sub('[-\s]+', '-', value))
         return value
 
     def select_save_directory(self):
+        """Displays a folder browser dialog"""
         path = QFileDialog.getExistingDirectory(self.dlg, "Select output directory", "", QFileDialog.ShowDirsOnly)
         self.dlg.txtSaveDirectory.setText(path)
 
     def run(self):
         """Run method that performs all the real work"""
-        s = QSettings()
         # get the list of templates
         self.get_templates(self.dlg.cmbTemplateName)
 
-        #self.get_templates(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), self.dlg.cmbTemplateName.currentText, "d:/test")
+        # set Main to be the active tab
+        self.dlg.tabTabs.setCurrentIndex(0)
 
         # show the dialog
         self.dlg.show()
+
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed
         if result and self.dlg.txtAstunServicesURL.text().strip() == '':
-            show_message('Astun Services URL has not been set. Please enter it in the settings tab', QgsMessageBar.WARN)
+            self.show_message('Astun Services URL has not been set. Please enter it in the settings tab', QgsMessageBar.WARN)
         if result:
-            #s.setValue("iShareGISPrintTemplateExporter/Template", self.dlg.cmbTemplateName.currentText())
+            s = QSettings()
             s.setValue("iShareGISPrintTemplateExporter/AstunServicesUrl", self.dlg.txtAstunServicesURL.text())
             s.setValue("iShareGISPrintTemplateExporter/SaveDirectory", self.dlg.txtSaveDirectory.text())
             s.setValue('iShareGISPrintTemplateExporter/Username', self.dlg.txtAstunServicesUsername.text())

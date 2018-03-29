@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>iShareGIS Print Template Export</string>
   </property>
-  <widget class="QTabWidget" name="tabWidget">
+  <widget class="QTabWidget" name="tabTabs">
    <property name="geometry">
     <rect>
      <x>10</x>
