@@ -209,11 +209,8 @@ class IShareGISPrintTemplateExport:
 
     def send_request(self, url, template, directory, payload):
         """Sends the request to the server"""
-        self.add_log_entry("URL: '{0}'".format(url))
-        self.add_log_entry("Template: '{0}'".format(template))
-        self.add_log_entry("Directory: '{0}'".format(directory))
-
         def request_finished(reply):
+            """Handles the response from the server"""
             networkAccessManager = QgsNetworkAccessManager.instance()
             networkAccessManager.finished.disconnect(request_finished)
             sc = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
