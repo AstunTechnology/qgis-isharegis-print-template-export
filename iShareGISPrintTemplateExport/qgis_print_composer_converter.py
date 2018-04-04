@@ -26,13 +26,16 @@ from PyQt4.QtGui import QAction, QIcon, QFileDialog
 # Initialize Qt resources from file resources.py
 import resources
 # Import any QGIS resources
-from qgis.core import QgsProject, QgsNetworkAccessManager, QgsMessageLog
+from qgis.core import QgsApplication, QgsProject, QgsNetworkAccessManager, QgsMessageLog
 from qgis.gui import QgsMessageBar
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkReply
 # Import the code for the dialog
 from qgis_print_composer_converter_dialog import IShareGISPrintTemplateExportDialog
 
+from os import listdir
+from os.path import isfile, join
 import os.path, unicodedata, re, base64
+from shutil import rmtree, copyfile
 
 class IShareGISPrintTemplateExport:
     """QGIS Plugin Implementation."""
@@ -217,9 +220,32 @@ class IShareGISPrintTemplateExport:
             if sc == 200:
                 ba = reply.readAll()
                 bas = str(ba.data())
-                path = os.path.join(directory, '{0}.html'.format(self.create_filename(template)))
+
+                safe_filename = self.create_filename(os.path.basename(os.path.splitext(template)[0]))
+                path = os.path.join(directory, '{0}'.format(safe_filename))
+                filepath = os.path.join(directory, '{0}/{0}.html'.format(safe_filename))
+                imagepath = os.path.join(path, 'images')
+
+                # remove the directory if it exists
+                rmtree(path, ignore_errors=True)
+
+                # create the directory structure
+                os.mkdir(path)
+                os.mkdir(imagepath)
+
+                re_exp = r"<img src=[\"']([^\"']*)"
+                images = re.findall(re_exp, bas)
+                if len(images) > 0:
+                    self.add_log_entry("Found {0} images".format(len(images)))
+
+                    # for image in images:
+                    #     try:
+                    #         copyfile(image, )
+                    # copy the image files to the images directory
+                    # change the src strings so that they point to the images directory
+
                 try:
-                    with open(path, 'w') as f:
+                    with open(filepath, 'w') as f:
                         f.write(bas)
                     self.show_message("Template successfully converted")
                 except IOError as e:
@@ -274,10 +300,24 @@ class IShareGISPrintTemplateExport:
         path = QFileDialog.getExistingDirectory(self.dlg, "Select output directory", "", QFileDialog.ShowDirsOnly)
         self.dlg.txtSaveDirectory.setText(path)
 
+    def populate_template_list(self, list):
+        dirs = QgsApplication.composerTemplatePaths()
+        files = []
+        for d in dirs:
+            self.add_log_entry('Found directory: "{0}"'.format(d))
+            files.extend([join(d, f) for f in listdir(d) if isfile(join(d, f)) and f.lower().endswith('.qpt')])
+
+        for f in files:
+            self.add_log_entry('Found file: "{0}"'.format(f))
+            list.addItem(f)
+
     def run(self):
         """Run method that performs all the real work"""
+        # get the list of template directories
+        self.populate_template_list(self.dlg.cmbTemplateName)
+
         # get the list of templates
-        self.get_templates(self.dlg.cmbTemplateName)
+        #self.get_templates(self.dlg.cmbTemplateName)
 
         # set Main to be the active tab
         self.dlg.tabTabs.setCurrentIndex(0)
@@ -297,7 +337,8 @@ class IShareGISPrintTemplateExport:
             s.setValue('iShareGISPrintTemplateExporter/Username', self.dlg.txtAstunServicesUsername.text())
             s.setValue('iShareGISPrintTemplateExporter/Password', self.dlg.txtAstunServicesPassword.text())
 
-            path_absolute = QgsProject.instance().fileName()
+            path_absolute = self.dlg.cmbTemplateName.currentText()
+            #path_absolute = QgsProject.instance().fileName()
             project_contents = ''
             with open(path_absolute, 'r') as f:
                 project_contents = f.read()
