@@ -6,8 +6,9 @@ This is a QGIS plugin which is used to convert the selected QGIS Print Composer 
 * An Astun Services account
 
 ## Installation ##
-Copy the required files to a directory within the QGIS Python plugin directory
-(`C:\Users\{username}\.qgis2\python\plugins\` on Windows).
+* Extract the zip file
+* Copy the iShareGISPrintTemplateExport directory to the QGIS Python plugin directory
+  * (`C:\Users\{username}\.qgis2\python\plugins\` on Windows)
 
 ## Set up ##
 Setup is initially done on first operation
