@@ -238,12 +238,14 @@ class IShareGISPrintTemplateExport:
                 if len(images) > 0:
                     self.add_log_entry("Found {0} images".format(len(images)))
 
-                    # for image in images:
-                    #     try:
-                    #         copyfile(image, )
-                    # copy the image files to the images directory
-                    # change the src strings so that they point to the images directory
-
+                    for image in images:
+                        try:
+                            dest_filename = os.path.join(imagepath, os.path.basename(image))
+                            copyfile(image, dest_filename)
+                            bas.replace(image, os.path.join('images', image))
+                        except Exception as e:
+                            self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
+                            #self.show_message('Unable to copy file: "{0}"'.format(image), level=QgsMessageBar.CRITICAL)
                 try:
                     with open(filepath, 'w') as f:
                         f.write(bas)
@@ -301,6 +303,7 @@ class IShareGISPrintTemplateExport:
         self.dlg.txtSaveDirectory.setText(path)
 
     def populate_template_list(self, list):
+        list.clear()
         dirs = QgsApplication.composerTemplatePaths()
         files = []
         for d in dirs:
