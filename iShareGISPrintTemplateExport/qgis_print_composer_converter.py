@@ -250,6 +250,7 @@ class IShareGISPrintTemplateExport:
                     with open(filepath, 'w') as f:
                         f.write(bas)
                     self.show_message("Template successfully converted")
+                    self.add_log_entry("Saved template to '{0}'".format(directory))
                 except IOError as e:
                     self.add_log_entry("Error saving template\r\n{0}".format(e), level=QgsMessageLog.CRITICAL)
                     self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL)
@@ -348,4 +349,4 @@ class IShareGISPrintTemplateExport:
 
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            self.send_request(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), unicode(self.dlg.cmbTemplateName.currentText()), "d:/test", project_contents)
+            self.send_request(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), unicode(self.dlg.cmbTemplateName.currentText()), unicode(self.dlg.txtSaveDirectory.text()), project_contents)
