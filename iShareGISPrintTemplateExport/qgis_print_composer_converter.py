@@ -230,8 +230,13 @@ class IShareGISPrintTemplateExport:
                 rmtree(path, ignore_errors=True)
 
                 # create the directory structure
-                os.mkdir(path)
-                os.mkdir(imagepath)
+                if not os.path.exists(path):
+                    self.add_log_entry("Export directory already exists, reusing")
+                    os.mkdir(path)
+
+                if not os.path.exists(imagepath):
+                    self.add_log_entry("Export image directory already exists, reusing")
+                    os.mkdir(imagepath)
 
                 re_exp = r"<img src=[\"']([^\"']*)"
                 images = re.findall(re_exp, bas)
