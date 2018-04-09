@@ -275,9 +275,6 @@ class IShareGISPrintTemplateExport:
         data = QByteArray(payload)
         reply = networkAccessManager.post(req, data)
 
-    # Open Folder Dialog
-    # https://stackoverflow.com/questions/3941917/can-the-open-file-dialog-be-used-to-select-a-folder
-
     def add_log_entry(self, message, level=QgsMessageLog.INFO):
         """Adds a log entry to the QGIS log"""
         QgsMessageLog.logMessage(message, "iShareGIS Template Export", level=level)
@@ -298,10 +295,13 @@ class IShareGISPrintTemplateExport:
         value = unicode(re.sub('[-\s]+', '-', value))
         return value
 
+    # Open Folder Dialog
+    # https://stackoverflow.com/questions/3941917/can-the-open-file-dialog-be-used-to-select-a-folder
     def select_save_directory(self):
         """Displays a folder browser dialog"""
         path = QFileDialog.getExistingDirectory(self.dlg, "Select output directory", "", QFileDialog.ShowDirsOnly)
-        self.dlg.txtSaveDirectory.setText(path)
+        if path is not None and path != '':
+            self.dlg.txtSaveDirectory.setText(path)
 
     def populate_template_list(self, list):
         list.clear()
