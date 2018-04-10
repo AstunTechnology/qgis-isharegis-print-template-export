@@ -224,7 +224,7 @@ class IShareGISPrintTemplateExport:
                 safe_filename = self.create_filename(os.path.basename(os.path.splitext(template)[0]))
                 path = os.path.join(directory, '{0}'.format(safe_filename))
                 filepath = os.path.join(directory, '{0}/{0}.html'.format(safe_filename))
-                imagepath = os.path.join(path, 'images')
+                imagepath = os.path.join(path, '{0}_images'.format(safe_filename))
 
                 # remove the directory if it exists
                 rmtree(path, ignore_errors=True)
@@ -234,14 +234,14 @@ class IShareGISPrintTemplateExport:
                     self.add_log_entry("Export directory already exists, reusing")
                     os.mkdir(path)
 
-                if not os.path.exists(imagepath):
-                    self.add_log_entry("Export image directory already exists, reusing")
-                    os.mkdir(imagepath)
-
                 re_exp = r"<img src=[\"']([^\"']*)"
                 images = re.findall(re_exp, bas)
                 if len(images) > 0:
                     self.add_log_entry("Found {0} images".format(len(images)))
+
+                    if not os.path.exists(imagepath):
+                        self.add_log_entry("Export image directory already exists, reusing")
+                        os.mkdir(imagepath)
 
                     for image in images:
                         try:
