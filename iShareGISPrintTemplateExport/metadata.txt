@@ -1,7 +1,7 @@
-# This file contains metadata for your plugin. Since 
-# version 2.0 of QGIS this is the proper way to supply 
-# information about a plugin. The old method of 
-# embedding metadata in __init__.py will 
+# This file contains metadata for your plugin. Since
+# version 2.0 of QGIS this is the proper way to supply
+# information about a plugin. The old method of
+# embedding metadata in __init__.py will
 # is no longer supported since version 2.0.
 
 # This file should be included when you package your plugin.# Mandatory items:
@@ -9,12 +9,12 @@
 [general]
 name=iShareGIS Print Template Export
 qgisMinimumVersion=2.0
-description=Exports a QGIS Print Composer template to iShareGIS
+description=Exports a QGIS Print Composer template to iShare GIS
 version=0.1
 author=Astun Technology
 email=qgisdev@astuntechnology.com
 
-about=Exports a QGIS Print Composer template as an iShareGIS print template.
+about=Exports a QGIS Print Composer template as an iShare GIS print template.
 
 tracker=http://bugs
 repository=http://repo
