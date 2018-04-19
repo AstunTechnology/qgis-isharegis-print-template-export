@@ -216,7 +216,6 @@ class IShareGISPrintTemplateExport:
 
     def send_request(self, url, template, directory, payload):
         """Sends the request to the server"""
-        self.add_log_entry('send_request("{0}", "{1}", "{2}", "[CONTENT]")'.format(url, template, directory))
         def request_finished(reply):
             """Handles the response from the server"""
             networkAccessManager = QgsNetworkAccessManager.instance()
@@ -231,18 +230,17 @@ class IShareGISPrintTemplateExport:
                 filepath = os.path.join(directory, '{0}/{0}.html'.format(safe_filename))
                 imagepath = os.path.join(path, '{0}_images'.format(safe_filename))
 
-                # remove the directory if it exists
+                # remove the output directory if it exists
                 rmtree(path, ignore_errors=True)
 
-                # create the directory structure
+                # create the output directory structure
                 ok_to_progress = True
                 if not os.path.exists(path):
                     self.add_log_entry("Export directory already exists, reusing")
                     try:
                         os.mkdir(path)
                     except Exception as e:
-                        self.show_message('Unable to create destination directory "{0}"'.format(path), QgsMessageBar.CRITICAL)
-                        self.add_log_entry('Unable to create destination directory "{0}"\r\n{1}'.format(path, e), QgsMessageLog.CRITICAL)
+                        self.show_message('Unable to create destination directory "{0}"'.format(path), QgsMessageBar.CRITICAL, log=True, exception=e)
                         ok_to_progress = False
 
                 if ok_to_progress:
@@ -276,16 +274,14 @@ class IShareGISPrintTemplateExport:
                         self.add_log_entry("Saved template to '{0}'".format(directory))
 
                         if not image_error:
-                            self.show_message("Template successfully converted")
+                            self.show_message("Template successfully converted", log=True)
                         else:
-                            self.show_message("Template saved, but at least one image not found", QgsMessageBar.WARNING)
+                            self.show_message("Template saved, but at least one image not found", QgsMessageBar.WARNING, log=True)
 
                     except IOError as e:
-                        self.add_log_entry("Error saving template\r\n{0}".format(e), level=QgsMessageLog.CRITICAL)
-                        self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL)
+                        self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL, log=True, exception=e)
             else:
-                self.add_log_entry("An error occurred while converting the template: {0}".format(sc), level=QgsMessageLog.CRITICAL)
-                self.show_message('An error occurred while converting the template', level=QgsMessageBar.CRITICAL)
+                self.show_message('An error occurred while converting the template', level=QgsMessageBar.CRITICAL, log=True)
             reply.deleteLater()
 
         username = self.dlg.txtAstunServicesUsername.text()
@@ -308,13 +304,25 @@ class IShareGISPrintTemplateExport:
         """Adds a log entry to the QGIS log"""
         QgsMessageLog.logMessage(message, "iShareGIS Template Export", level=level)
 
-    def show_message(self, message, level=QgsMessageBar.INFO):
+    def show_message(self, message, level=QgsMessageBar.INFO, log=False, exception=None):
         self.iface.messageBar().pushMessage(
             'iShareGIS Template Exporter : ',
             self.tr(message),
             level = level,
             duration=5
         )
+
+        if log:
+            log_level = QgsMessageLog.INFO
+            if level == QgsMessageBar.WARNING:
+                log_level = QgsMessageLog.WARNING
+            if level == QgsMessageBar.CRITICAL:
+                log_level = QgsMessageLog.CRITICAL
+
+            if exception is not None:
+                message = "{0}\r\n{1}".format(message, exception)
+
+            self.add_log_entry(message, level=log_level)
 
     # https://stackoverflow.com/questions/295135/turn-a-string-into-a-valid-filename
     def create_filename(self, value):
@@ -333,6 +341,7 @@ class IShareGISPrintTemplateExport:
             self.dlg.txtSaveDirectory.setText(path)
 
     def populate_template_list(self, list):
+        """Populates the ComboBox with a list of templates"""
         list.clear()
         dirs = QgsApplication.composerTemplatePaths()
         files = []
@@ -355,9 +364,6 @@ class IShareGISPrintTemplateExport:
         # get the list of template directories
         self.populate_template_list(self.dlg.cmbTemplateName)
 
-        # get the list of templates
-        #self.get_templates(self.dlg.cmbTemplateName)
-
         # set Main to be the active tab
         self.dlg.tabTabs.setCurrentIndex(0)
 
@@ -368,20 +374,22 @@ class IShareGISPrintTemplateExport:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result and self.dlg.txtAstunServicesURL.text().strip() == '':
-            self.show_message('Astun Services URL has not been set. Please enter it in the settings tab', QgsMessageBar.WARN)
+            self.show_message('Astun Services URL has not been set. Please enter it in the settings tab', QgsMessageBar.CRITICAL, log=True)
         if result:
+            # save the current settings
             s = QSettings()
             s.setValue("iShareGISPrintTemplateExporter/AstunServicesUrl", self.dlg.txtAstunServicesURL.text())
             s.setValue("iShareGISPrintTemplateExporter/SaveDirectory", self.dlg.txtSaveDirectory.text())
             s.setValue('iShareGISPrintTemplateExporter/Username', self.dlg.txtAstunServicesUsername.text())
             s.setValue('iShareGISPrintTemplateExporter/Password', self.dlg.txtAstunServicesPassword.text())
 
+            # get the filename stored in the itemData of the selected item
             path_absolute = self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())
-            #path_absolute = QgsProject.instance().fileName()
+
+            # read the template in
             project_contents = ''
             with open(path_absolute, 'r') as f:
                 project_contents = f.read()
 
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
+            # create the request and send it
             self.send_request(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), unicode(self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())), unicode(self.dlg.txtSaveDirectory.text()), project_contents)
