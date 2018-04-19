@@ -246,11 +246,11 @@ class IShareGISPrintTemplateExport:
                     for image in images:
                         try:
                             dest_filename = os.path.join(imagepath, os.path.basename(image))
+                            relative_image_path = os.path.join('images', os.path.basename(image))
                             copyfile(image, dest_filename)
-                            bas.replace(image, os.path.join('images', image))
+                            bas = bas.replace(image, relative_image_path)
                         except Exception as e:
                             self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
-                            #self.show_message('Unable to copy file: "{0}"'.format(image), level=QgsMessageBar.CRITICAL)
                 try:
                     with open(filepath, 'w') as f:
                         f.write(bas)
