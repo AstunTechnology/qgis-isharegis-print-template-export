@@ -197,21 +197,26 @@ class IShareGISPrintTemplateExport:
         # remove the toolbar
         del self.toolbar
 
-    def populateComposerList(self, w):
-        w.clear()
-        for cView in self.iface.activeComposers():
-            w.addItem(cView.composerWindow().windowTitle())
+    # def populateComposerList(self, w):
+    #     w.clear()
+    #     for cView in self.iface.activeComposers():
+    #         file_path = cView.composerWindow().windowTitle()
+    #         filename = os.path.basename(file_path)
+    #         path = file_path.replace(filename, '')
+    #         w.addItem()
+    #         #w.addItem(cView.composerWindow().windowTitle())
 
-    def get_templates(self, w):
-        if len(self.iface.activeComposers()) == 0:
-            self.show_message(u'There are currently no print composers in the project'\
-                'Please create at least one before running this plugin.')
-            self.dlg.close()
-        else:
-            self.populateComposerList(w)
+    # def get_templates(self, w):
+    #     if len(self.iface.activeComposers()) == 0:
+    #         self.show_message(u'There are currently no print composers in the project'\
+    #             'Please create at least one before running this plugin.')
+    #         self.dlg.close()
+    #     else:
+    #         self.populateComposerList(w)
 
     def send_request(self, url, template, directory, payload):
         """Sends the request to the server"""
+        self.add_log_entry('send_request("{0}", "{1}", "{2}", "[CONTENT]")'.format(url, template, directory))
         def request_finished(reply):
             """Handles the response from the server"""
             networkAccessManager = QgsNetworkAccessManager.instance()
@@ -234,50 +239,50 @@ class IShareGISPrintTemplateExport:
                 if not os.path.exists(path):
                     self.add_log_entry("Export directory already exists, reusing")
                     try:
-                    os.mkdir(path)
+                        os.mkdir(path)
                     except Exception as e:
                         self.show_message('Unable to create destination directory "{0}"'.format(path), QgsMessageBar.CRITICAL)
                         self.add_log_entry('Unable to create destination directory "{0}"\r\n{1}'.format(path, e), QgsMessageLog.CRITICAL)
                         ok_to_progress = False
 
                 if ok_to_progress:
-                re_exp = r"<img src=[\"']([^\"']*)"
-                images = re.findall(re_exp, bas)
+                    re_exp = r"<img src=[\"']([^\"']*)"
+                    images = re.findall(re_exp, bas)
                     image_error = False
-                if len(images) > 0:
-                    self.add_log_entry("Found {0} image(s)".format(len(images)))
+                    if len(images) > 0:
+                        self.add_log_entry("Found {0} image(s)".format(len(images)))
 
-                    if not os.path.exists(imagepath):
-                        self.add_log_entry("Export image directory already exists, reusing")
-                        os.mkdir(imagepath)
+                        if not os.path.exists(imagepath):
+                            self.add_log_entry("Export image directory already exists, reusing")
+                            os.mkdir(imagepath)
 
-                    for image in images:
+                        for image in images:
                             self.add_log_entry('Found image "{0}"'.format(image))
-                        dest_filename = os.path.join(imagepath, os.path.basename(image))
-                        relative_image_path = "{0}_images/{1}".format(safe_filename, os.path.basename(image))
-                        self.add_log_entry('Relative image path set to "{0}"'.format(relative_image_path))
-                        bas = bas.replace(image, relative_image_path)
+                            dest_filename = os.path.join(imagepath, os.path.basename(image))
+                            relative_image_path = "{0}_images/{1}".format(safe_filename, os.path.basename(image))
+                            self.add_log_entry('Relative image path set to "{0}"'.format(relative_image_path))
+                            bas = bas.replace(image, relative_image_path)
 
-                        try:
-                            copyfile(image, dest_filename)
-                        except Exception as e:
+                            try:
+                                copyfile(image, dest_filename)
+                            except Exception as e:
                                 image_error = True
-                            self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
+                                self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
 
-                try:
-                    with open(filepath, 'w') as f:
-                        f.write(bas)
+                    try:
+                        with open(filepath, 'w') as f:
+                            f.write(bas)
 
                         self.add_log_entry("Saved template to '{0}'".format(directory))
 
                         if not image_error:
-                    self.show_message("Template successfully converted")
+                            self.show_message("Template successfully converted")
                         else:
                             self.show_message("Template saved, but at least one image not found", QgsMessageBar.WARNING)
 
-                except IOError as e:
-                    self.add_log_entry("Error saving template\r\n{0}".format(e), level=QgsMessageLog.CRITICAL)
-                    self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL)
+                    except IOError as e:
+                        self.add_log_entry("Error saving template\r\n{0}".format(e), level=QgsMessageLog.CRITICAL)
+                        self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL)
             else:
                 self.add_log_entry("An error occurred while converting the template: {0}".format(sc), level=QgsMessageLog.CRITICAL)
                 self.show_message('An error occurred while converting the template', level=QgsMessageBar.CRITICAL)
@@ -337,7 +342,13 @@ class IShareGISPrintTemplateExport:
 
         for f in files:
             self.add_log_entry('Found file: "{0}"'.format(f))
-            list.addItem(f)
+
+            file_with_ext = os.path.basename(f)
+            path = f.replace(file_with_ext, '')
+            filename = os.path.splitext(file_with_ext)[0]
+            filename = filename.replace('_', ' ').replace('-', ' ')
+
+            list.addItem('{0} ({1})'.format(filename, path), userData = f)
 
     def run(self):
         """Run method that performs all the real work"""
@@ -365,7 +376,7 @@ class IShareGISPrintTemplateExport:
             s.setValue('iShareGISPrintTemplateExporter/Username', self.dlg.txtAstunServicesUsername.text())
             s.setValue('iShareGISPrintTemplateExporter/Password', self.dlg.txtAstunServicesPassword.text())
 
-            path_absolute = self.dlg.cmbTemplateName.currentText()
+            path_absolute = self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())
             #path_absolute = QgsProject.instance().fileName()
             project_contents = ''
             with open(path_absolute, 'r') as f:
@@ -373,4 +384,4 @@ class IShareGISPrintTemplateExport:
 
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            self.send_request(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), unicode(self.dlg.cmbTemplateName.currentText()), unicode(self.dlg.txtSaveDirectory.text()), project_contents)
+            self.send_request(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), unicode(self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())), unicode(self.dlg.txtSaveDirectory.text()), project_contents)
