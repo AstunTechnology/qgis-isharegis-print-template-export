@@ -230,12 +230,20 @@ class IShareGISPrintTemplateExport:
                 rmtree(path, ignore_errors=True)
 
                 # create the directory structure
+                ok_to_progress = True
                 if not os.path.exists(path):
                     self.add_log_entry("Export directory already exists, reusing")
+                    try:
                     os.mkdir(path)
+                    except Exception as e:
+                        self.show_message('Unable to create destination directory "{0}"'.format(path), QgsMessageBar.CRITICAL)
+                        self.add_log_entry('Unable to create destination directory "{0}"\r\n{1}'.format(path, e), QgsMessageLog.CRITICAL)
+                        ok_to_progress = False
 
+                if ok_to_progress:
                 re_exp = r"<img src=[\"']([^\"']*)"
                 images = re.findall(re_exp, bas)
+                    image_error = False
                 if len(images) > 0:
                     self.add_log_entry("Found {0} image(s)".format(len(images)))
 
@@ -244,6 +252,7 @@ class IShareGISPrintTemplateExport:
                         os.mkdir(imagepath)
 
                     for image in images:
+                            self.add_log_entry('Found image "{0}"'.format(image))
                         dest_filename = os.path.join(imagepath, os.path.basename(image))
                         relative_image_path = "{0}_images/{1}".format(safe_filename, os.path.basename(image))
                         self.add_log_entry('Relative image path set to "{0}"'.format(relative_image_path))
@@ -252,13 +261,20 @@ class IShareGISPrintTemplateExport:
                         try:
                             copyfile(image, dest_filename)
                         except Exception as e:
+                                image_error = True
                             self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
 
                 try:
                     with open(filepath, 'w') as f:
                         f.write(bas)
+
+                        self.add_log_entry("Saved template to '{0}'".format(directory))
+
+                        if not image_error:
                     self.show_message("Template successfully converted")
-                    self.add_log_entry("Saved template to '{0}'".format(directory))
+                        else:
+                            self.show_message("Template saved, but at least one image not found", QgsMessageBar.WARNING)
+
                 except IOError as e:
                     self.add_log_entry("Error saving template\r\n{0}".format(e), level=QgsMessageLog.CRITICAL)
                     self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL)
