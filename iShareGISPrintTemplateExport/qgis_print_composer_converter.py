@@ -237,20 +237,23 @@ class IShareGISPrintTemplateExport:
                 re_exp = r"<img src=[\"']([^\"']*)"
                 images = re.findall(re_exp, bas)
                 if len(images) > 0:
-                    self.add_log_entry("Found {0} images".format(len(images)))
+                    self.add_log_entry("Found {0} image(s)".format(len(images)))
 
                     if not os.path.exists(imagepath):
                         self.add_log_entry("Export image directory already exists, reusing")
                         os.mkdir(imagepath)
 
                     for image in images:
+                        dest_filename = os.path.join(imagepath, os.path.basename(image))
+                        relative_image_path = "{0}_images/{1}".format(safe_filename, os.path.basename(image))
+                        self.add_log_entry('Relative image path set to "{0}"'.format(relative_image_path))
+                        bas = bas.replace(image, relative_image_path)
+
                         try:
-                            dest_filename = os.path.join(imagepath, os.path.basename(image))
-                            relative_image_path = os.path.join('images', os.path.basename(image))
                             copyfile(image, dest_filename)
-                            bas = bas.replace(image, relative_image_path)
                         except Exception as e:
                             self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
+
                 try:
                     with open(filepath, 'w') as f:
                         f.write(bas)
