@@ -197,23 +197,6 @@ class IShareGISPrintTemplateExport:
         # remove the toolbar
         del self.toolbar
 
-    # def populateComposerList(self, w):
-    #     w.clear()
-    #     for cView in self.iface.activeComposers():
-    #         file_path = cView.composerWindow().windowTitle()
-    #         filename = os.path.basename(file_path)
-    #         path = file_path.replace(filename, '')
-    #         w.addItem()
-    #         #w.addItem(cView.composerWindow().windowTitle())
-
-    # def get_templates(self, w):
-    #     if len(self.iface.activeComposers()) == 0:
-    #         self.show_message(u'There are currently no print composers in the project'\
-    #             'Please create at least one before running this plugin.')
-    #         self.dlg.close()
-    #     else:
-    #         self.populateComposerList(w)
-
     def send_request(self, url, template, directory, payload):
         """Sends the request to the server"""
         def request_finished(reply):
@@ -226,60 +209,51 @@ class IShareGISPrintTemplateExport:
                 bas = str(ba.data())
 
                 safe_filename = self.create_filename(os.path.basename(os.path.splitext(template)[0]))
-                path = os.path.join(directory, '{0}'.format(safe_filename))
-                filepath = os.path.join(directory, '{0}/{0}.html'.format(safe_filename))
-                imagepath = os.path.join(path, '{0}_images'.format(safe_filename))
+                #path = directory #os.path.join(directory, '{0}'.format(safe_filename))
+                filepath = os.path.join(directory, '{0}.html'.format(safe_filename))
+                imagepath = os.path.join(directory, '{0}_images'.format(safe_filename))
 
-                # remove the output directory if it exists
-                rmtree(path, ignore_errors=True)
+                # remove the template and images directory if they exist
+                if os.path.isfile(filepath):
+                    os.remove(filepath)
+                rmtree(imagepath, ignore_errors=True)
 
-                # create the output directory structure
-                ok_to_progress = True
-                if not os.path.exists(path):
-                    self.add_log_entry("Export directory already exists, reusing")
-                    try:
-                        os.mkdir(path)
-                    except Exception as e:
-                        self.show_message('Unable to create destination directory "{0}"'.format(path), QgsMessageBar.CRITICAL, log=True, exception=e)
-                        ok_to_progress = False
+                re_exp = r"<img src=[\"']([^\"']*)"
+                images = re.findall(re_exp, bas)
+                image_error = False
+                if len(images) > 0:
+                    self.add_log_entry("Found {0} image(s)".format(len(images)))
 
-                if ok_to_progress:
-                    re_exp = r"<img src=[\"']([^\"']*)"
-                    images = re.findall(re_exp, bas)
-                    image_error = False
-                    if len(images) > 0:
-                        self.add_log_entry("Found {0} image(s)".format(len(images)))
+                    if not os.path.exists(imagepath):
+                        self.add_log_entry("Export image directory already exists, reusing")
+                        os.mkdir(imagepath)
 
-                        if not os.path.exists(imagepath):
-                            self.add_log_entry("Export image directory already exists, reusing")
-                            os.mkdir(imagepath)
+                    for image in images:
+                        self.add_log_entry('Found image "{0}"'.format(image))
+                        dest_filename = os.path.join(imagepath, os.path.basename(image))
+                        relative_image_path = "{0}_images/{1}".format(safe_filename, os.path.basename(image))
+                        self.add_log_entry('Relative image path set to "{0}"'.format(relative_image_path))
+                        bas = bas.replace(image, relative_image_path)
 
-                        for image in images:
-                            self.add_log_entry('Found image "{0}"'.format(image))
-                            dest_filename = os.path.join(imagepath, os.path.basename(image))
-                            relative_image_path = "{0}_images/{1}".format(safe_filename, os.path.basename(image))
-                            self.add_log_entry('Relative image path set to "{0}"'.format(relative_image_path))
-                            bas = bas.replace(image, relative_image_path)
+                        try:
+                            copyfile(image, dest_filename)
+                        except Exception as e:
+                            image_error = True
+                            self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
 
-                            try:
-                                copyfile(image, dest_filename)
-                            except Exception as e:
-                                image_error = True
-                                self.add_log_entry('Unable to copy file: "{0}" to {1}\r\n{2}'.format(image, dest_filename, e), level=QgsMessageLog.CRITICAL)
+                try:
+                    with open(filepath, 'w') as f:
+                        f.write(bas)
 
-                    try:
-                        with open(filepath, 'w') as f:
-                            f.write(bas)
+                    self.add_log_entry("Saved template to '{0}'".format(directory))
 
-                        self.add_log_entry("Saved template to '{0}'".format(directory))
+                    if not image_error:
+                        self.show_message("Template successfully converted", log=True)
+                    else:
+                        self.show_message("Template saved, but at least one image not found", QgsMessageBar.WARNING, log=True)
 
-                        if not image_error:
-                            self.show_message("Template successfully converted", log=True)
-                        else:
-                            self.show_message("Template saved, but at least one image not found", QgsMessageBar.WARNING, log=True)
-
-                    except IOError as e:
-                        self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL, log=True, exception=e)
+                except IOError as e:
+                    self.show_message("Unable to save template to selected directory", level=QgsMessageBar.CRITICAL, log=True, exception=e)
             else:
                 self.show_message('An error occurred while converting the template', level=QgsMessageBar.CRITICAL, log=True)
             reply.deleteLater()
