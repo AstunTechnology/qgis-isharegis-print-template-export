@@ -360,14 +360,18 @@ class IShareGISPrintTemplateExport:
             # get the filename stored in the itemData of the selected item
             path_absolute = self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())
 
-            if not path_absolute:
-                self.show_message('Composer path not found. Please define a template folder by Settings > Options > Composer and add a composer path', QgsMessageBar.CRITICAL, log=True)
-                return
-
             # read the template in
             project_contents = ''
-            with open(path_absolute, 'r') as f:
-                project_contents = f.read()
 
-            # create the request and send it
-            self.send_request(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), unicode(self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())), unicode(self.dlg.txtSaveDirectory.text()), project_contents)
+            try:
+                with open(path_absolute, 'r') as f:
+                    project_contents = f.read()
+            except TypeError as e:
+                self.show_message('Composer file path not found. Please define a template folder by Settings > Options > Composer and add a composer path', level=QgsMessageBar.CRITICAL, log=True, exception=e)
+                return				
+            except Exception as e:
+                self.show_message('Problem reading the composer file', level=QgsMessageBar.CRITICAL, log=True, exception=e)
+                return
+            else:				
+                # create the request and send it
+                self.send_request(s.value("iShareGISPrintTemplateExporter/AstunServicesUrl"), unicode(self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())), unicode(self.dlg.txtSaveDirectory.text()), project_contents)
