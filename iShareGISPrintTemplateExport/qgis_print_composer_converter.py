@@ -360,6 +360,10 @@ class IShareGISPrintTemplateExport:
             # get the filename stored in the itemData of the selected item
             path_absolute = self.dlg.cmbTemplateName.itemData(self.dlg.cmbTemplateName.currentIndex())
 
+            if not path_absolute:
+                self.show_message('Composer path not found. Please define a template folder by Settings > Options > Composer and add a composer path', QgsMessageBar.CRITICAL, log=True)
+                return
+
             # read the template in
             project_contents = ''
             with open(path_absolute, 'r') as f:
