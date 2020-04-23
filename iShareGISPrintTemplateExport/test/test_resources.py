@@ -9,16 +9,16 @@
 """
 
 __author__ = 'qgisdev@astuntechnology.com'
-__date__ = '2018-03-23'
-__copyright__ = 'Copyright 2018, Astun Technology'
+__date__ = '2020-04-20'
+__copyright__ = 'Copyright 2020, Astun Technology'
 
 import unittest
 
-from PyQt4.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 
 
 
-class IShareGISPrintTemplateExportDialogTest(unittest.TestCase):
+class iShareGISPrintTemplateExporterDialogTest(unittest.TestCase):
     """Test rerources work."""
 
     def setUp(self):
@@ -31,12 +31,12 @@ class IShareGISPrintTemplateExportDialogTest(unittest.TestCase):
 
     def test_icon_png(self):
         """Test we can click OK."""
-        path = ':/plugins/IShareGISPrintTemplateExport/icon.png'
+        path = ':/plugins/iShareGISPrintTemplateExporter/icon.png'
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(IShareGISPrintTemplateExportResourcesTest)
+    suite = unittest.makeSuite(iShareGISPrintTemplateExporterResourcesTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 

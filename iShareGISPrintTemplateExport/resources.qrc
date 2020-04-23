@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/plugins/IShareGISPrintTemplateExport" >
+    <qresource prefix="/plugins/isharegis_print_template_exporter" >
         <file>icon.png</file>
     </qresource>
 </RCC>

@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>IShareGISPrintTemplateExportDialogBase</class>
- <widget class="QDialog" name="IShareGISPrintTemplateExportDialogBase">
+<ui version="4.0" >
+ <class>iShareGISPrintTemplateExporterDialogBase</class>
+ <widget class="QDialog" name="iShareGISPrintTemplateExporterDialogBase" >
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -162,13 +161,13 @@
       </rect>
      </property>
      <property name="echoMode">
-      <enum>QLineEdit::Password</enum>
+      <enum>QLineEdit::Normal</enum>
      </property>
     </widget>
    </widget>
   </widget>
-  <widget class="QDialogButtonBox" name="button_box">
-   <property name="geometry">
+  <widget class="QDialogButtonBox" name="button_box" >
+   <property name="geometry" >
     <rect>
      <x>81</x>
      <y>150</y>
@@ -176,10 +175,10 @@
      <height>20</height>
     </rect>
    </property>
-   <property name="orientation">
+   <property name="orientation" >
     <enum>Qt::Horizontal</enum>
    </property>
-   <property name="standardButtons">
+   <property name="standardButtons" >
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
@@ -189,14 +188,14 @@
   <connection>
    <sender>button_box</sender>
    <signal>accepted()</signal>
-   <receiver>IShareGISPrintTemplateExportDialogBase</receiver>
+   <receiver>iShareGISPrintTemplateExporterDialogBase</receiver>
    <slot>accept()</slot>
    <hints>
-    <hint type="sourcelabel">
+    <hint type="source_label" >
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel">
+    <hint type="destination_label" >
      <x>20</x>
      <y>20</y>
     </hint>
@@ -205,7 +204,7 @@
   <connection>
    <sender>button_box</sender>
    <signal>rejected()</signal>
-   <receiver>IShareGISPrintTemplateExportDialogBase</receiver>
+   <receiver>iShareGISPrintTemplateExporterDialogBase</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

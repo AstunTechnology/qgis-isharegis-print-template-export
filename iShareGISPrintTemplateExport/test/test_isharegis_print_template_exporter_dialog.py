@@ -9,25 +9,25 @@
 """
 
 __author__ = 'qgisdev@astuntechnology.com'
-__date__ = '2018-03-23'
-__copyright__ = 'Copyright 2018, Astun Technology'
+__date__ = '2020-04-20'
+__copyright__ = 'Copyright 2020, Astun Technology'
 
 import unittest
 
-from PyQt4.QtGui import QDialogButtonBox, QDialog
+from qgis.PyQt.QtGui import QDialogButtonBox, QDialog
 
-from qgis_print_composer_converter_dialog import IShareGISPrintTemplateExportDialog
+from isharegis_print_template_exporter_dialog import iShareGISPrintTemplateExporterDialog
 
 from utilities import get_qgis_app
 QGIS_APP = get_qgis_app()
 
 
-class IShareGISPrintTemplateExportDialogTest(unittest.TestCase):
+class iShareGISPrintTemplateExporterDialogTest(unittest.TestCase):
     """Test dialog works."""
 
     def setUp(self):
         """Runs before each test."""
-        self.dialog = IShareGISPrintTemplateExportDialog(None)
+        self.dialog = iShareGISPrintTemplateExporterDialog(None)
 
     def tearDown(self):
         """Runs after each test."""
@@ -49,7 +49,7 @@ class IShareGISPrintTemplateExportDialogTest(unittest.TestCase):
         self.assertEqual(result, QDialog.Rejected)
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(IShareGISPrintTemplateExportDialogTest)
+    suite = unittest.makeSuite(iShareGISPrintTemplateExporterDialogTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
 
