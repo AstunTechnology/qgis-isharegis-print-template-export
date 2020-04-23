@@ -10,7 +10,7 @@ This is a QGIS plugin which is used to convert the selected QGIS Print Composer 
 ## Installation ##
 * Extract the zip file
 * Copy the iShareGISPrintTemplateExport directory to the QGIS Python plugin directory
-  * (`C:\Users\{username}\.qgis2\python\plugins\` on Windows)
+  * (`C:\Users\{username}\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\` on Windows)
 
 ## Set up ##
 Setup is initially completed on first operation
