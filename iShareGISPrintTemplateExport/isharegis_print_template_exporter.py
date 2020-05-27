@@ -205,11 +205,6 @@ class iShareGISPrintTemplateExporter:
 
 
 
-        self.add_log_entry(f"URL: {url}")
-        self.add_log_entry(f"Template: {template}")
-        self.add_log_entry(f"Directory: {directory}")
-        self.add_log_entry(f"Payload:\r\n{payload}")
-
         self.save_directory = directory
         self.save_template = template
 
@@ -224,6 +219,12 @@ class iShareGISPrintTemplateExporter:
         self.nam.finished.connect(self.request_finished)
         data = self.convert_to_QByteArray(payload)
 
+        self.add_log_entry(f"URL: {url}")
+        self.add_log_entry(f"Template: {template}")
+        self.add_log_entry(f"Directory: {directory}")
+        self.add_log_entry(f"Payload:\r\n{payload}")
+
+        self.add_log_entry("save_template: {0} [{1}]".format(self.save_template, type(self.save_template).__name__))
         self.add_log_entry("Sending request")
         self.nam.post(req, data)
 
@@ -243,6 +244,10 @@ class iShareGISPrintTemplateExporter:
             safe_filename = self.create_filename(os.path.basename(os.path.splitext(self.save_template)[0]))
             filepath = os.path.join(self.save_directory, '{0}.html'.format(safe_filename))
             imagepath = os.path.join(self.save_directory, '{0}_images'.format(safe_filename))
+
+            self.add_log_entry("safe_filename: {0}".format(safe_filename))
+            self.add_log_entry("imagepath: {0}".format(imagepath))
+            self.add_log_entry("filepath: {0}".format(filepath))
 
             # remove the template and images directory if they exist
             if os.path.isfile(filepath):
@@ -325,7 +330,8 @@ class iShareGISPrintTemplateExporter:
     # https://stackoverflow.com/questions/295135/turn-a-string-into-a-valid-filename
     def create_filename(self, value):
         """Creates a safe filename"""
-        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+        self.add_log_entry(type(value).__name__)
+        value = unicodedata.normalize('NFKD', value).encode('utf-8', 'ignore').decode()
         value = re.sub(r'[^\w\s-]', '', str(value)).strip().lower()
         value = re.sub(r'[-\s]+', '-', value)
         return value
