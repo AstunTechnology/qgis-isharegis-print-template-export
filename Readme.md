@@ -4,7 +4,7 @@ Author: Astun Technology Ltd.
 ## Introduction ##
 This is a QGIS plugin which is used to convert the selected QGIS Print Composer template to an iShare GIS print template.
 ## Requirements ##
-* QGIS 2 (tested with 2.18.18)
+* QGIS 4 (tested with 4.2.3)
 * An Astun Services account
 
 ## Installation ##
