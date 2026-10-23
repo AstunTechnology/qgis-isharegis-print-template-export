@@ -211,7 +211,7 @@ class iShareGISPrintTemplateExporter:
         req = QNetworkRequest(QUrl(url))
 
         # set request headers
-        req.setHeader(QNetworkRequest.ContentTypeHeader, "application/xml")
+        req.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/xml")
         req.setRawHeader(self.convert_to_QByteArray("x-template-name"), self.convert_to_QByteArray(template))
         req.setRawHeader(b"Authorization", b"Basic " + base64.b64encode(f"{self.dlg.txtAstunServicesUsername.text()}:{self.dlg.txtAstunServicesPassword.text()}".encode()))
 
@@ -236,7 +236,7 @@ class iShareGISPrintTemplateExporter:
             return
 
         self.nam.finished.disconnect(self.request_finished)
-        sc = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+        sc = reply.attribute(QNetworkRequest.Attribute.HttpStatusCodeAttribute)
         if sc == 200:
             ba = reply.readAll()
             bas = str(ba.data(), encoding='utf-8')
@@ -298,8 +298,7 @@ class iShareGISPrintTemplateExporter:
 
     def convert_to_QByteArray(self, value):
         self.add_log_entry(f"Converting to QByteArray: {value}")
-        ba = QByteArray()
-        ba.append(value)
+        ba = QByteArray(value.encode())
         return ba
 
     def add_log_entry(self, message, level=QGis.Info):
@@ -340,7 +339,7 @@ class iShareGISPrintTemplateExporter:
     # https://stackoverflow.com/questions/3941917/can-the-open-file-dialog-be-used-to-select-a-folder
     def select_save_directory(self):
         """Displays a folder browser dialog"""
-        path = QFileDialog.getExistingDirectory(self.dlg, "Select output directory", "", QFileDialog.ShowDirsOnly)
+        path = QFileDialog.getExistingDirectory(self.dlg, "Select output directory", "")
         if path is not None and path != '':
             self.dlg.txtSaveDirectory.setText(path)
 
@@ -393,7 +392,7 @@ class iShareGISPrintTemplateExporter:
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
-        result = self.dlg.exec_()
+        result = self.dlg.exec()
         # See if OK was pressed
         if result and self.dlg.txtAstunServicesURL.text().strip() == '':
             self.show_message('Astun Services URL has not been set. Please enter it in the settings tab', QGis.Critical, log=True)
