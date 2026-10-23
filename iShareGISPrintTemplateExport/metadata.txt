@@ -6,7 +6,7 @@
 name=iShareGIS Print Template Exporter
 qgisMinimumVersion=4.0
 description=Exports a QGIS Print Composer template to iShare GIS
-version=0.1
+version=4.0
 author=Astun Technology
 email=qgisdev@astuntechnology.com
 
