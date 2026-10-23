@@ -14,13 +14,18 @@ This is a QGIS plugin which is used to convert the selected QGIS Print Composer 
 
 ## Set up ##
 Setup is initially completed on first operation
+* In QGIS, add a convenient template path to the `Layout Paths`
+  * Settings -> Layouts
+  * Click the `+` in the `Layout Paths` section
+  * Select the convenient path and click `Select Folder`
 * Run the plugin
 * On the settings tab, enter the URL, Username and Password provided by Astun Technology.
 * Continue with the Operation
 
 ## Operation ##
+* In QGIS, save the template to the convenient template path
 * Run the plugin
-* On the main tab, select the template you wish to export.
+* On the main tab, select the template you wish to export from the drop-down.
 * Either enter the destination directory manually in the textbox or click on the `...` button to browse for a directory.
 * Click OK
 * You will end up with an HTML file in the destination directory called similar to the template title.
